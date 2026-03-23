@@ -1,0 +1,9 @@
+{
+  "name": "devops-demo-app",
+  "version": "1.0.0",
+  "description": "Simple demo app for Jenkins CI/CD pipeline",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  }
+}
