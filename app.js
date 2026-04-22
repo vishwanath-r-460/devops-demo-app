@@ -5,7 +5,7 @@ const HOST = '0.0.0.0';
 
 const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Hello from DevOps Demo App v7!\n');
+  res.end('Hello from DevOps Demo App v8!\n');
 });
 
 server.listen(PORT, HOST, () => {
