@@ -1,0 +1,25 @@
+
+services:
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins-docker
+
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+
+    restart: always
+
+    volumes:
+      - /var/lib/docker/volumes/jenkins_home/_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  app:
+    image: vishwanath460/devops-demo-app:latest
+    container_name: devops-demo-app
+
+    ports:
+      - "3000:3000"
+
+    restart: always
