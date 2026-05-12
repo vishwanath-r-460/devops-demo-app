@@ -4,7 +4,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "vishwanath460/devops-demo-app"
-        VERSION = "v1.${BUILD_NUMBER}"
+        VERSION = "v${BUILD_NUMBER}"
         CONTAINER_NAME = "devops-demo-app"
     }
 
