@@ -5,7 +5,6 @@ pipeline {
     environment {
         DOCKER_IMAGE = "vishwanath460/devops-demo-app"
         VERSION = "v${BUILD_NUMBER}"
-        CONTAINER_NAME = "devops-demo-app"
     }
 
     stages {
@@ -52,51 +51,36 @@ pipeline {
             }
         }
 
-        stage('Deploy Container') {
+        stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                echo "Stopping old container..."
-                docker stop $CONTAINER_NAME || true
+                echo "Deploying application to Kubernetes..."
 
-                echo "Removing old container..."
-                docker rm $CONTAINER_NAME || true
+                kubectl apply -f k8s/deployment.yaml
+                kubectl apply -f k8s/service.yaml
 
-                echo "Starting new container..."
+                echo "Updating deployment image..."
 
-                docker run -d \
-                --restart always \
-                -p 3000:3000 \
-                --name $CONTAINER_NAME \
-                $DOCKER_IMAGE:$VERSION
+                kubectl set image deployment/devops-demo-app \
+                devops-demo-app=$DOCKER_IMAGE:$VERSION
+
+                echo "Waiting for rollout..."
+
+                kubectl rollout status deployment/devops-demo-app
                 '''
             }
         }
 
-        stage('Verify App') {
+        stage('Verify Kubernetes Deployment') {
             steps {
                 sh '''
-                echo "Checking running container..."
-                docker ps | grep $CONTAINER_NAME
+                echo "Checking Kubernetes resources..."
 
-                echo "Waiting for application startup..."
-                sleep 10
+                kubectl get pods
+                kubectl get deployment
+                kubectl get svc
 
-                for i in $(seq 1 10)
-                do
-                    echo "Verification attempt $i..."
-
-                    if docker logs $CONTAINER_NAME | grep "Server running"; then
-                        echo "Application deployed successfully!"
-                        exit 0
-                    fi
-
-                    sleep 5
-                done
-
-                echo "Application failed to start!"
-                docker logs $CONTAINER_NAME
-
-                exit 1
+                echo "Deployment verified successfully!"
                 '''
             }
         }
@@ -120,28 +104,11 @@ pipeline {
         failure {
 
             sh '''
-            echo "Build failed! Starting rollback..."
+            echo "Build failed! Starting Kubernetes rollback..."
 
-            if [ -f last_success.txt ]; then
+            kubectl rollout undo deployment/devops-demo-app || true
 
-                LAST_SUCCESS=$(cat last_success.txt)
-
-                echo "Rolling back to $LAST_SUCCESS"
-
-                docker stop $CONTAINER_NAME || true
-                docker rm $CONTAINER_NAME || true
-
-                docker run -d \
-                --restart always \
-                -p 3000:3000 \
-                --name $CONTAINER_NAME \
-                $DOCKER_IMAGE:$LAST_SUCCESS
-
-                echo "Rollback completed successfully!"
-
-            else
-                echo "No backup version found!"
-            fi
+            echo "Rollback completed!"
             '''
         }
     }
