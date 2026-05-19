@@ -56,7 +56,7 @@ pipeline {
                 sh '''
                 echo "Deploying application to Kubernetes..."
 
-                kubectl replace --force -f k8s/deployment.ymal
+                kubectl replace --force -f k8s/deployment.yaml
                 kubectl apply -f k8s/service.yaml
 
                 echo "Updating deployment image..."
